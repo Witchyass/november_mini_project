@@ -11,34 +11,24 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/Witchyass/november_mini_project.git',
-                        credentialsId: 'github-token'
-                    ]]
-                ])
+                
+                echo "Check""
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    // Build from StudyBud subdirectory (where manage.py lives)
-                    docker.build("${DOCKER_IMAGE}", "StudyBud")
-                }
+                sh 'docker build -t ${DOCKER_IMAGE} StudyBud'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                script {
-                    docker.withRegistry('', 'dockerhub-creds') {
-                        docker.image("${DOCKER_IMAGE}").push()
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${DOCKER_IMAGE}
+                    '''
                 }
             }
         }
@@ -52,7 +42,6 @@ pipeline {
                                 sudo apt-get update
                                 sudo apt-get install -y docker.io
                                 sudo usermod -aG docker ${EC2_USER}
-                                newgrp docker 2>/dev/null || true
                             fi
                             sudo docker pull ${DOCKER_IMAGE}
                             sudo docker rm -f python_app 2>/dev/null || true
@@ -66,10 +55,10 @@ pipeline {
 
     post {
         success {
-            echo "deployment succeeded! Visit http://${EC2_HOST}:${APP_PORT}"
+            echo "Deployment succeeded! Visit http://${EC2_HOST}:${APP_PORT}"
         }
         failure {
-            echo "deployment failed."
+            echo "Deployment failed."
         }
     }
 }
