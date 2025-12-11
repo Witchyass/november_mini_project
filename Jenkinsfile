@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 
-                echo "Check""
+                echo "Check"
             }
         }
 
