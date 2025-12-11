@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'susan22283/WTF_November_mini_project:latest'
+        DOCKER_IMAGE = 'susan22283/wtf_november_mini_project:latest'
         EC2_USER     = 'ubuntu'
         EC2_HOST     = '52.91.168.143'
         APP_PORT     = '8000'
